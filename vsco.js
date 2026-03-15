@@ -68,10 +68,10 @@ function addDownloadButton() {
     downloadButton.className = 'css-a9578v e1lxikmc0';
     downloadButton.addEventListener('click', async () => {
         // // Press the load more button
-        // clickLoadMore();
+        clickLoadMore();
 
         // // // Scroll to the end
-        // await scrollToEnd();
+        await scrollToEnd();
 
         // // // Main scraping logic goes here
         download();
