@@ -8,6 +8,8 @@
 // @grant        GM_download
 // ==/UserScript==
 
+let stopScrolling = false;
+
 function download() {
     console.log("Listing out all images on the page");
     const images = document.getElementsByClassName('MediaThumbnail');
@@ -22,7 +24,6 @@ function download() {
 
 function clickLoadMore() {
     let elements = document.getElementsByTagName('grain-button');
-    console.log(`Found ${elements.length} elements`);
     for (let i = 0; i < elements.length; i++) {
         try {
             elements[i].shadowRoot.getElementById('loadMore-Button').click();
@@ -36,9 +37,9 @@ function clickLoadMore() {
 async function scrollToEnd() {
     // Heustric based approach on scrolling to the end of the page
     let oldHeight = document.body.scrollHeight;
-    console.log(`Old height ${oldHeight}`);
-    while (true) {
-        window.scrollBy(0, 5000);
+    stopScrolling = false;
+    while (true && !stopScrolling) {
+        window.scrollTo(0, document.body.scrollHeight);
         await new Promise((resolve, reject) => {
             setTimeout(() => {
                 // Wait for 300ms
@@ -46,8 +47,7 @@ async function scrollToEnd() {
             }, 800);
         })
         let newHeight = document.body.scrollHeight;
-        console.log(`New height ${newHeight}`);
-        
+
         if (newHeight === oldHeight) {
             console.log("Reached the end of the page");
             break;
@@ -57,27 +57,61 @@ async function scrollToEnd() {
 
 }
 
-function addDownloadButton() {
+function addButtons() {
     const followButton = document.getElementById('follow-button');
-    console.log(followButton);
-    
+
     const toInsert = followButton.parentNode;
-    
+
+    // Download Button
     const downloadButton = document.createElement('button');
     downloadButton.innerHTML = 'Download';
     downloadButton.className = 'css-a9578v e1lxikmc0';
     downloadButton.addEventListener('click', async () => {
-        // // Press the load more button
-        clickLoadMore();
-
-        // // // Scroll to the end
-        await scrollToEnd();
-
-        // // // Main scraping logic goes here
+        // Main scraping logic goes here
         download();
     })
     toInsert.insertBefore(downloadButton, followButton);
+
+    // Scroll button
+    const scrollButton = document.createElement('button');
+    scrollButton.innerHTML = 'Scroll';
+    scrollButton.className = 'css-a9578v e1lxikmc0';
+    scrollButton.addEventListener('click', async () => {
+        clickLoadMore();
+        await scrollToEnd();
+    })
+    toInsert.insertBefore(scrollButton, followButton);
+
+    // Floating stop scrolling button
+    const stopScrollButton = document.createElement('button');
+    stopScrollButton.innerHTML = 'Stop Scrolling';
+    stopScrollButton.className = 'css-a9578v e1lxikmc0';
+    stopScrollButton.style.position = 'fixed';
+    stopScrollButton.style.bottom = '20px';
+    stopScrollButton.style.right = '20px';
+    const divContainer = document.createElement('div');
+    divContainer.appendChild(stopScrollButton);
+    document.body.appendChild(divContainer);
+    stopScrollButton.addEventListener('click', async () => {
+        console.log("Stop scrolling!");
+        stopScrolling = true;
+    })
+
+    // Flaoting go up button
+    const goUpButton = document.createElement('button');
+    goUpButton.innerHTML = 'Go Up';
+    goUpButton.className = 'css-a9578v e1lxikmc0';
+    goUpButton.style.position = 'fixed';
+    goUpButton.style.bottom = '60px';
+    goUpButton.style.right = '20px';
+    divContainer.appendChild(goUpButton);
+    goUpButton.addEventListener('click', async () => {
+        console.log("Going up!");
+        stopScrolling = true;
+        window.scrollTo(0, 0);
+    });
 }
+
 
 (async function () {
     'use strict';
@@ -93,5 +127,5 @@ function addDownloadButton() {
         }, 2000);
     })
 
-    addDownloadButton();
+    addButtons();
 })();
